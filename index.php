@@ -1,0 +1,379 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .app { display: grid; grid-template-columns: 260px 340px; gap: 18px; padding: 1rem 0; }
+  .panel { display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: .85rem 1rem; }
+  .card h3 { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .depth-row { display: flex; align-items: center; gap: 7px; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .depth-row:last-child { border-bottom: none; }
+  .depth-label { font-size: 11.5px; color: var(--color-text-secondary); width: 46px; flex-shrink: 0; }
+  .golpes-input { width: 58px; font-size: 12.5px; padding: 4px 6px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); text-align: center; font-family: var(--font-sans); -moz-appearance: textfield; }
+  .golpes-input::-webkit-outer-spin-button, .golpes-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .golpes-input:focus { outline: none; border-color: #378ADD; box-shadow: 0 0 0 2px rgba(55,138,221,0.18); }
+  .mpa-val { font-size: 10.5px; color: var(--color-text-tertiary); width: 52px; text-align: right; flex-shrink: 0; }
+  .mpa-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--color-background-secondary); overflow: hidden; }
+  .mpa-fill { height: 100%; border-radius: 3px; transition: width 0.2s; }
+  .btn-group { display: flex; gap: 7px; flex-wrap: wrap; }
+  button { font-size: 12.5px; padding: 6px 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; transition: background 0.15s; font-family: var(--font-sans); }
+  button:hover { background: var(--color-background-secondary); }
+  button:active { transform: scale(0.98); }
+  button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  button.primary:hover { background: #0c447c; }
+  button.export { background: #1A7A4A; color: #fff; border-color: #1A7A4A; }
+  button.export:hover { background: #145c38; }
+  button.danger { color: #A32D2D; border-color: #A32D2D; }
+  button.danger:hover { background: #FCEBEB; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .chart-wrap { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.1rem; display: flex; flex-direction: column; }
+  .chart-title { font-size: 13px; font-weight: 500; }
+  .chart-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; margin-bottom: 10px; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: var(--color-text-secondary); margin-top: 8px; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend-line { width: 16px; height: 3px; border-radius: 2px; }
+  .meta-input { width: 100%; font-size: 12.5px; padding: 5px 7px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .meta-input:focus { outline: none; border-color: #378ADD; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 11.5px; padding: 2.5px 0; }
+  .stat-label { color: var(--color-text-secondary); }
+  .stat-val { font-weight: 500; }
+  .factor-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 5px; }
+  .factor-row label { color: var(--color-text-secondary); flex: 1; }
+  .factor-row input { width: 66px; font-size: 12.5px; padding: 4px 6px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); text-align: center; font-family: var(--font-sans); }
+  .factor-row input:focus { outline: none; border-color: #378ADD; }
+</style>
+
+<div class="app">
+  <div class="panel">
+    <div class="card">
+      <h3>Datos del ensayo</h3>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <input class="meta-input" id="sitio" placeholder="Sitio / identificación" />
+        <input class="meta-input" id="fecha" type="date" />
+        <input class="meta-input" id="operador" placeholder="Operador" />
+        <input class="meta-input" id="notas" placeholder="Observaciones (opcional)" />
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Penetrómetro</h3>
+      <div class="factor-row">
+        <label>Constante (kg/cm²/golpe)</label>
+        <input type="number" id="constante" value="2.75" min="0.1" max="20" step="0.05" oninput="recalcAll()" />
+      </div>
+      <div class="factor-row">
+        <label>Umbral crítico (MPa)</label>
+        <input type="number" id="threshold" value="2.5" min="0" max="10" step="0.1" oninput="recalcAll()" />
+      </div>
+      <p style="font-size:10.5px;color:var(--color-text-tertiary);margin-top:3px;">Factor: <span id="factorDisplay">0.2698</span> MPa/golpe</p>
+    </div>
+
+    <div class="card">
+      <h3>Golpes por capa (cada 5 cm)</h3>
+      <div id="inputRows"></div>
+    </div>
+
+    <div class="card">
+      <h3>Estadísticas</h3>
+      <div id="statsContent"><p style="font-size:11.5px;color:var(--color-text-secondary);">Ingrese datos para ver.</p></div>
+    </div>
+
+    <div class="btn-group">
+      <button class="primary" onclick="drawChart()">▶ Graficar</button>
+      <button class="export" id="btnExport" onclick="exportPDF()" disabled>⬇ PDF</button>
+      <button class="danger" onclick="clearAll()">✕ Limpiar</button>
+    </div>
+  </div>
+
+  <!-- GRÁFICO: altura fija y más compacta -->
+  <div class="chart-wrap">
+    <div class="chart-title">Perfil de resistencia mecánica del suelo</div>
+    <div class="chart-meta" id="chartMeta">Penetrómetro de impacto — punta cónica</div>
+    <div style="position:relative; height:290px;">
+      <canvas id="chartCanvas"></canvas>
+    </div>
+    <div class="legend">
+      <span><span class="legend-line" style="background:#185FA5;"></span>Resistencia (MPa)</span>
+      <span><span class="legend-line" style="border-top:2px dashed #E24B4A;background:transparent;"></span>Umbral crítico</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const DEPTHS = [5,10,15,20,25,30,35,40,45,50,55,60];
+let chartInstance = null;
+let lastValid = [];
+
+function getFactor() { return (parseFloat(document.getElementById('constante').value)||2.75)*0.0981; }
+function getThreshold() { return parseFloat(document.getElementById('threshold').value)||2.5; }
+function golpesToMpa(n) { return n * getFactor(); }
+function getBarColor(mpa) {
+  const t = getThreshold();
+  if (mpa >= t) return '#E24B4A';
+  if (mpa >= t*0.7) return '#EF9F27';
+  return '#1D9E75';
+}
+
+function buildRows() {
+  const c = document.getElementById('inputRows'); c.innerHTML='';
+  DEPTHS.forEach((d,i) => {
+    const row = document.createElement('div'); row.className='depth-row';
+    row.innerHTML=`
+      <span class="depth-label">${d} cm</span>
+      <input class="golpes-input" type="number" id="g${i}" min="0" max="200" step="1" placeholder="—"
+        oninput="updateRow(${i})"
+        onkeydown="if(event.key==='Enter'||event.key==='ArrowDown'){event.preventDefault();document.getElementById('g${Math.min(i+1,11)}')?.focus()}
+                   if(event.key==='ArrowUp'){event.preventDefault();document.getElementById('g${Math.max(i-1,0)}')?.focus()}" />
+      <div class="mpa-bar"><div class="mpa-fill" id="bar${i}" style="width:0%;background:#1D9E75;"></div></div>
+      <span class="mpa-val" id="mpa${i}">—</span>`;
+    c.appendChild(row);
+  });
+}
+
+function updateRow(i) {
+  const raw = document.getElementById(`g${i}`).value;
+  if (raw==='') { document.getElementById(`bar${i}`).style.width='0%'; document.getElementById(`mpa${i}`).textContent='—'; return; }
+  const n=parseFloat(raw); if(isNaN(n)) return;
+  const mpa=golpesToMpa(n), maxMpa=Math.max(getThreshold()*2,5);
+  document.getElementById(`bar${i}`).style.width=Math.min((mpa/maxMpa)*100,100)+'%';
+  document.getElementById(`bar${i}`).style.background=getBarColor(mpa);
+  document.getElementById(`mpa${i}`).textContent=mpa.toFixed(2)+' MPa';
+}
+
+function recalcAll() {
+  document.getElementById('factorDisplay').textContent=getFactor().toFixed(4);
+  DEPTHS.forEach((_,i)=>updateRow(i));
+}
+
+function getData() {
+  return DEPTHS.map((d,i)=>{
+    const raw=document.getElementById(`g${i}`).value;
+    const n=(raw===''||raw===null)?null:parseFloat(raw);
+    return {depth:d, golpes:n, mpa:n!==null&&!isNaN(n)?golpesToMpa(n):null};
+  });
+}
+
+function updateStats(valid) {
+  if(!valid.length) return;
+  const vals=valid.map(d=>d.mpa);
+  const avg=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);
+  const max=Math.max(...vals).toFixed(2), min=Math.min(...vals).toFixed(2);
+  const t=getThreshold(), over=valid.filter(d=>d.mpa>=t);
+  const pct=((over.length/valid.length)*100).toFixed(0);
+  document.getElementById('statsContent').innerHTML=`
+    <div class="stat-row"><span class="stat-label">Capas registradas</span><span class="stat-val">${valid.length}/12</span></div>
+    <div class="stat-row"><span class="stat-label">Promedio</span><span class="stat-val">${avg} MPa</span></div>
+    <div class="stat-row"><span class="stat-label">Máximo</span><span class="stat-val">${max} MPa</span></div>
+    <div class="stat-row"><span class="stat-label">Mínimo</span><span class="stat-val">${min} MPa</span></div>
+    <div class="stat-row"><span class="stat-label">Capas ≥ umbral</span><span class="stat-val" style="color:#E24B4A">${over.length} (${pct}%)</span></div>`;
+}
+
+function drawChart() {
+  const data=getData(), valid=data.filter(d=>d.mpa!==null);
+  if(!valid.length){alert('Ingrese al menos un valor de golpes.');return;}
+  lastValid=valid; updateStats(valid);
+  const t=getThreshold();
+  const sitio=document.getElementById('sitio').value, fecha=document.getElementById('fecha').value;
+  if(sitio||fecha) document.getElementById('chartMeta').textContent=[sitio,fecha].filter(Boolean).join(' · ')+' — Penetrómetro de impacto';
+  const labels=valid.map(d=>d.depth+' cm');
+  const mpaVals=valid.map(d=>+d.mpa.toFixed(3));
+  const maxX=+(Math.max(...mpaVals,t)*1.18).toFixed(2);
+  const pointColors=mpaVals.map(v=>v>=t?'#E24B4A':'#185FA5');
+  if(chartInstance) chartInstance.destroy();
+  const ctx=document.getElementById('chartCanvas').getContext('2d');
+  chartInstance=new Chart(ctx,{
+    type:'line',
+    data:{labels, datasets:[
+      {label:'Resistencia (MPa)', data:mpaVals, borderColor:'#185FA5', borderWidth:2.5,
+       backgroundColor:'rgba(24,95,165,0.07)', fill:true, tension:0.3,
+       pointBackgroundColor:pointColors, pointBorderColor:'#fff', pointBorderWidth:1.5,
+       pointRadius:5, pointHoverRadius:7, order:2},
+      {label:'Umbral crítico', data:valid.map(()=>t), borderColor:'#E24B4A', borderWidth:1.5,
+       borderDash:[6,4], pointRadius:0, fill:false, tension:0, order:1}
+    ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      animation:{onComplete:()=>{document.getElementById('btnExport').disabled=false;}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>{
+        if(c.datasetIndex===1) return `Umbral: ${t} MPa`;
+        return [`Resistencia: ${c.parsed.x.toFixed(2)} MPa`,`Golpes: ${valid[c.dataIndex].golpes}`];
+      }}}},
+      scales:{
+        x:{title:{display:true,text:'Resistencia mecánica (MPa)',font:{size:11}}, min:0, max:maxX, grid:{color:'rgba(128,128,128,0.12)'}, ticks:{font:{size:11}}},
+        y:{title:{display:true,text:'Profundidad (cm)',font:{size:11}}, grid:{color:'rgba(128,128,128,0.12)'}, ticks:{font:{size:11}}}
+      }
+    }
+  });
+}
+
+function clearAll() {
+  DEPTHS.forEach((_,i)=>{
+    document.getElementById(`g${i}`).value='';
+    document.getElementById(`bar${i}`).style.width='0%';
+    document.getElementById(`mpa${i}`).textContent='—';
+  });
+  if(chartInstance){chartInstance.destroy();chartInstance=null;}
+  lastValid=[]; document.getElementById('btnExport').disabled=true;
+  document.getElementById('statsContent').innerHTML='<p style="font-size:11.5px;color:var(--color-text-secondary);">Ingrese datos para ver.</p>';
+  document.getElementById('chartMeta').textContent='Penetrómetro de impacto — punta cónica';
+}
+
+function exportPDF() {
+  if(!chartInstance||!lastValid.length) return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210, mg=18;
+
+  // Header
+  doc.setFillColor(24,95,165); doc.rect(0,0,W,22,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('Perfil de Resistencia Mecánica del Suelo',mg,10);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text('Penetrómetro de impacto — punta cónica',mg,17);
+
+  // Metadatos
+  doc.setTextColor(40,40,40);
+  const sitio=document.getElementById('sitio').value||'—';
+  const fecha=document.getElementById('fecha').value||'—';
+  const operador=document.getElementById('operador').value||'—';
+  const notas=document.getElementById('notas').value||'—';
+  const constante=document.getElementById('constante').value||'2.75';
+  const t=getThreshold(), factor=getFactor().toFixed(4);
+
+  let y=30; const c1=mg, c2=115;
+  doc.setFontSize(9.5); doc.setFont('helvetica','bold');
+  doc.text('DATOS DEL ENSAYO',c1,y); y+=6;
+  const mRows=[
+    ['Sitio / ID:',sitio,'Fecha:',fecha],
+    ['Operador:',operador,'Constante:',`${constante} kg/cm²/golpe`],
+    ['Umbral crítico:',`${t} MPa`,'Factor:',`${factor} MPa/golpe`],
+    ['Observaciones:',notas,'',''],
+  ];
+  doc.setFontSize(9);
+  mRows.forEach(([l1,v1,l2,v2])=>{
+    doc.setFont('helvetica','bold'); doc.text(l1,c1,y);
+    doc.setFont('helvetica','normal'); doc.text(v1,c1+34,y);
+    if(l2){doc.setFont('helvetica','bold'); doc.text(l2,c2,y);}
+    if(v2){doc.setFont('helvetica','normal'); doc.text(v2,c2+28,y);}
+    y+=6;
+  });
+
+  // Línea separadora
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.3);
+  doc.line(mg,y,W-mg,y); y+=5;
+
+  // ── Gráfico: renderizar en canvas off-screen (tamaño reducido para PDF liviano) ──
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = 800;
+  offCanvas.height = 480;
+  const offCtx = offCanvas.getContext('2d');
+
+  // Fondo blanco
+  offCtx.fillStyle = '#ffffff';
+  offCtx.fillRect(0,0,800,480);
+
+  const mpaVals = lastValid.map(d=>+d.mpa.toFixed(3));
+  const depthLabels = lastValid.map(d=>d.depth+' cm');
+  const maxX = +(Math.max(...mpaVals,t)*1.18).toFixed(2);
+  const pointColors = mpaVals.map(v=>v>=t?'#E24B4A':'#185FA5');
+
+  const offChart = new Chart(offCtx, {
+    type:'line',
+    data:{labels:depthLabels, datasets:[
+      {label:'Resistencia (MPa)', data:mpaVals, borderColor:'#185FA5', borderWidth:4,
+       backgroundColor:'rgba(24,95,165,0.07)', fill:true, tension:0.3,
+       pointBackgroundColor:pointColors, pointBorderColor:'#fff', pointBorderWidth:2,
+       pointRadius:7, order:2},
+      {label:'Umbral crítico', data:lastValid.map(()=>t), borderColor:'#E24B4A', borderWidth:2.5,
+       borderDash:[10,7], pointRadius:0, fill:false, tension:0, order:1}
+    ]},
+    plugins:[{
+      id:'whiteBg',
+      beforeDraw(chart){
+        const ctx=chart.ctx; ctx.save();
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,chart.width,chart.height);
+        ctx.restore();
+      }
+    }],
+    options:{
+      indexAxis:'y', responsive:false, maintainAspectRatio:false,
+      animation:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{title:{display:true, text:'Resistencia mecánica (MPa)', font:{size:15, weight:'bold'}},
+           min:0, max:maxX, grid:{color:'rgba(128,128,128,0.15)'},
+           ticks:{font:{size:13}}},
+        y:{title:{display:true, text:'Profundidad (cm)', font:{size:15, weight:'bold'}},
+           grid:{color:'rgba(128,128,128,0.15)'},
+           ticks:{font:{size:13}}}
+      }
+    }
+  });
+
+  // JPEG con calidad 0.82: reduce el PDF de ~30 MB a ~1-2 MB sin pérdida visual notable
+  const imgData = offCanvas.toDataURL('image/jpeg', 0.82);
+  offChart.destroy();
+
+  const chartH = 105;
+  doc.addImage(imgData,'JPEG',mg,y,W-mg*2,chartH);
+  y+=chartH+6;
+
+  // Tabla
+  doc.setDrawColor(200,200,200); doc.line(mg,y,W-mg,y); y+=5;
+  doc.setFontSize(9.5); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
+  doc.text('DATOS REGISTRADOS',mg,y); y+=5;
+
+  const cols=[mg,mg+26,mg+55,mg+88,mg+118];
+  doc.setFillColor(235,240,248); doc.rect(mg,y,W-mg*2,6.5,'F');
+  doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+  ['Prof. (cm)','Golpes','Resist. (MPa)','vs. Umbral','Estado'].forEach((h,i)=>doc.text(h,cols[i]+1,y+4.5));
+  y+=6.5;
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+  getData().forEach((row,idx)=>{
+    const fill=idx%2===0?[255,255,255]:[248,248,248];
+    doc.setFillColor(...fill); doc.rect(mg,y,W-mg*2,6,'F');
+    doc.setTextColor(40,40,40);
+    doc.text(String(row.depth),cols[0]+1,y+4);
+    if(row.golpes!==null){
+      const mpa=row.mpa.toFixed(2), diff=(row.mpa-t).toFixed(2);
+      doc.text(String(row.golpes),cols[1]+1,y+4);
+      doc.text(mpa,cols[2]+1,y+4);
+      doc.text((diff>=0?'+':'')+diff,cols[3]+1,y+4);
+      if(row.mpa>=t) doc.setTextColor(180,40,40);
+      doc.text(row.mpa>=t?'Supera umbral':'OK',cols[4]+1,y+4);
+      doc.setTextColor(40,40,40);
+    } else {
+      doc.setTextColor(160,160,160);
+      [cols[1],cols[2],cols[3],cols[4]].forEach(cx=>doc.text('—',cx+1,y+4));
+      doc.setTextColor(40,40,40);
+    }
+    y+=6;
+  });
+
+  // Resumen
+  if(lastValid.length){
+    y+=4;
+    const vals=lastValid.map(d=>d.mpa);
+    const avg=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);
+    const mx=Math.max(...vals).toFixed(2), mn=Math.min(...vals).toFixed(2);
+    const over=lastValid.filter(d=>d.mpa>=t).length;
+    doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
+    doc.text(`Resumen — Promedio: ${avg} MPa  |  Máx: ${mx} MPa  |  Mín: ${mn} MPa  |  Capas ≥ umbral: ${over}/${lastValid.length}`,mg,y);
+  }
+
+  // Pie
+  doc.setFontSize(7.5); doc.setTextColor(160,160,160); doc.setFont('helvetica','normal');
+  doc.text(`Generado el ${new Date().toLocaleDateString('es-AR')} — Factor de conversión: ${factor} MPa/golpe`,mg,290);
+
+  const fn=`penetrometro_${(sitio||'ensayo').replace(/\s+/g,'_')}_${fecha||new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(fn);
+}
+
+buildRows();
+document.getElementById('fecha').value=new Date().toISOString().split('T')[0];
+document.getElementById('factorDisplay').textContent=getFactor().toFixed(4);
+</script>
