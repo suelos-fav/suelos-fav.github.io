@@ -1,9 +1,8 @@
-
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  .app { display: flex; flex-direction: column; gap: 18px; padding: 1rem 0; max-width: 420px; }
+  .app { display: flex; flex-direction: column; gap: 18px; padding: 1rem 0; max-width: 100%; }
   .panel { display: flex; flex-direction: column; gap: 12px; }
-  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: .85rem 1rem; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: .75rem .85rem; width: 100%; }
   .card h3 { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   .depth-row { display: flex; align-items: center; gap: 7px; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
   .depth-row:last-child { border-bottom: none; }
@@ -12,8 +11,8 @@
   .golpes-input::-webkit-outer-spin-button, .golpes-input::-webkit-inner-spin-button { -webkit-appearance: none; }
   .golpes-input:focus { outline: none; border-color: #378ADD; box-shadow: 0 0 0 2px rgba(55,138,221,0.18); }
   .mpa-val { font-size: 10.5px; color: var(--color-text-tertiary); width: 52px; text-align: right; flex-shrink: 0; }
-  .mpa-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--color-background-secondary); overflow: hidden; }
-  .mpa-fill { height: 100%; border-radius: 3px; transition: width 0.2s; }
+  .mpa-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--color-background-secondary); overflow: hidden; }
+  .mpa-fill { height: 100%; border-radius: 2px; transition: width 0.2s; }
   .btn-group { display: flex; gap: 7px; flex-wrap: wrap; }
   button { font-size: 12.5px; padding: 6px 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; transition: background 0.15s; font-family: var(--font-sans); }
   button:hover { background: var(--color-background-secondary); }
@@ -41,6 +40,7 @@
   .factor-row input { width: 66px; font-size: 12.5px; padding: 4px 6px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); text-align: center; font-family: var(--font-sans); }
   .factor-row input:focus { outline: none; border-color: #378ADD; }
 </style>
+
 
 <div class="app">
   <div class="panel">
